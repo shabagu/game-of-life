@@ -44,7 +44,7 @@ def cells_update(screen, cells, size, with_progress=False):
         if with_progress:
           color = COLOR_ALIVE_CELL
 
-    # Зарождение жизни (в пустой клетке при наличии трёх соседей)
+    # Зарождение жизни (при наличии трёх соседей)
     else:
       if alive == 3:
         updated_cells[row, col] = 1
@@ -76,6 +76,8 @@ def main():
   running = False
   generations = 0
   start_time = None
+  previous_cells = np.zeros((60, 80))
+
 
 
   # Основный цикл симуляции
@@ -156,6 +158,9 @@ def main():
     # События симуляции
     if running:
 
+      # Задание массива клеток предыдущего поколения
+      previous_cells = cells
+
       # Смена поколения клеток
       cells = cells_update(screen, cells, CELL_SIZE, with_progress=True)
       pygame.display.update()
@@ -174,12 +179,24 @@ def main():
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
         time_passed = "%s секунд" % round((time.time() - start_time), 3)
-        msg(f"Все клетки вымерли!\n\nПоколений пройдено: {generations}\nЖивых клеток: 0\nПрошло времени: {time_passed}", "Информация")
+        msg(f"Симуляция прекращена!\n(все клетки вымерли)\n\nПоколений пройдено: {generations}\nЖивых клеток: 0\nПрошло времени: {time_passed}", "Информация")
+
         generations = 0
         start_time = None
         running = not running
 
-    
+      # Геймовер (при прекращении появления новых клеток)
+      if np.array_equal(cells, previous_cells):
+        alive = len(np.nonzero(cells)[0])
+        time_passed = "%s секунд" % round((time.time() - start_time), 3)
+        msg(f"Симуляция стабилизировалась!\n(появление новых клеток невозможно)\n\nПоколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
+
+        generations = 0
+        start_time = None
+        running = not running
+
+      
+
 
 # Вызов главной функции при запуске программы
 if __name__ == "__main__":
