@@ -4,7 +4,6 @@ import pygame
 import time
 from config import *
 
-
 # Функция вызова сообщения
 def msg(text, title=""):
   pyautogui.alert(text, title)
@@ -12,35 +11,47 @@ def msg(text, title=""):
 
 # Изменение состояния клеток в зависимости от их окружения
 def cells_update(screen, cells, size, with_progress=False):
+
+  # Инициализация массива клеток поля
   updated_cells = np.zeros((cells.shape[0], cells.shape[1]))
 
+  # Обработка каждой клетки поля
   for row, col in np.ndindex(cells.shape):
 
     # Расчёт живих клеток вокруг определённой клетки
     alive = np.sum(cells[row - 1: row + 2, col - 1: col + 2]) - cells[row, col]
 
+    # Первичная обработка клеток поля
     if cells[row, col] == 0:
+      # Инициализация пустых клеток
+      # (на этом этапе происходит вымирание клетки от одиночества)
       color = COLOR_BG
     else:
+      # Инициализация не пустых клеток
       color =  COLOR_ALIVE_CELL
 
+    # Обработка заполненных клеток поля
     if cells[row, col] == 1:
 
+      # Вымирание клетки от перенаселения
       if alive < 2 or alive > 3:
         if with_progress:
           color = COLOR_DYING_CELL
 
+      # Клетка выживает
       elif 2 <= alive <= 3:
         updated_cells[row, col] = 1
         if with_progress:
           color = COLOR_ALIVE_CELL
 
+    # Зарождение жизни (в пустой клетке при наличии трёх соседей)
     else:
       if alive == 3:
         updated_cells[row, col] = 1
         if with_progress:
           color = COLOR_ALIVE_CELL
 
+    # Отрисовка клеток на экране pygame
     pygame.draw.rect(screen, color, (col * size, row * size, size - 1, size - 1))
 
   return updated_cells
