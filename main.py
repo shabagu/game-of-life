@@ -127,7 +127,6 @@ def main():
         if event.key == pygame.K_F1:
           msg("Управление\n\nSPACE - пауза\nЛКМ - выставление клетки (во время паузы)\nR - перезапуск\nG - случайная генерация клеток\nI - просмотреть информацию о текущей симуляции", "Помощь")
 
-
       # Обработка событий нажатия клавиш мыши
       if pygame.mouse.get_pressed()[0]:
         pos = pygame.mouse.get_pos()
@@ -142,9 +141,6 @@ def main():
         
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
-
-    # Обновление сетки
-    # screen.fill(COLOR_GRID)
 
     # События симуляции
     if running:
