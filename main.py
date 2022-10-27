@@ -149,6 +149,8 @@ def main():
         time.sleep(0.1)
         
       if len(np.nonzero(cells)[0]) == 0:
+        cells_update(screen, cells, CELL_SIZE)
+        pygame.display.update()
         time_passed = "%s секунд" % round((time.time() - start_time), 3)
         msg(f"Все клетки вымерли!\n\nПоколений пройдено: {generations}\nЖивых клеток: 0\nПрошло времени: {time_passed}", "Информация")
         generations = 0
