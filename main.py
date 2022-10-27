@@ -58,7 +58,8 @@ def main():
   # Инициирование кнопок
   
   # clock = pygame.time.Clock()
-  button = Button("Click here!", font, 690, 610)
+  # button = Button("Управление", font, 670, 610)
+  button = Button("Управление", font, SCREEN_WIDTH - 130, SCREEN_HEIGHT - 40)
   screen.blit(button.surface, (button.x, button.y))
   pygame.display.update()
   # clock.tick(30)
@@ -75,35 +76,48 @@ def main():
         if event.key == pygame.K_SPACE:
           running = not running
           update(screen, cells, CELL_SIZE)
+          screen.blit(button.surface, (button.x, button.y))
           pygame.display.update()
 
       # elif event.type == pygame.MOUSEBUTTONDOWN:
       #   if pygame.mouse.get_pressed()[0]
       
       if pygame.mouse.get_pressed()[0]:
-        if not running:
-          pos = pygame.mouse.get_pos()
+        pos = pygame.mouse.get_pos()
 
-          # try:
-          if (pos[1] < 600 and pos[0] < 800):
+        # Расстановка клеток
+        if (pos[1] <= 600 and pos[0] <= 800):
+          if not running:
             try:
               cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 1
             except IndexError:
               pass
-          
-          if button.area.collidepoint(pos[0], pos[1]):
-            button_click(button, font)
-            
-          
-          update(screen, cells, CELL_SIZE)
-          # pygame.display.update() # TODO: объединить в один апдейт метод
-          screen.blit(button.surface, (button.x, button.y))
-          pygame.display.update()
+        
+        # Нажатие на кнопку паузы (Инфромации?)
+        if button.area.collidepoint(pos[0], pos[1]):
+          # if running:
+          #   button.set("Пауза", font, 690, 610)
+          # if not running:
+          #   button.set("Симуляция", font, 690, 610)
+
+          # screen.blit(button.surface, (button.x, button.y))
+          # pygame.display.update()
+
+          # !!!
+          # running = not running
+
+          msg("Управление\nSPACE - пауза\nЛКМ - выставление клетки (во время паузы)")
+        
+        update(screen, cells, CELL_SIZE)
+        # pygame.display.update() # TODO: объединить в один апдейт метод
+        screen.blit(button.surface, (button.x, button.y))
+        pygame.display.update()
 
     screen.fill(COLOR_GRID)
 
     if running:
       cells = update(screen, cells, CELL_SIZE, with_progress=True)
+      screen.blit(button.surface, (button.x, button.y))
       pygame.display.update()
 
       if SLOW_MODE:
@@ -118,11 +132,11 @@ if __name__ == "__main__":
 
 # TODO:
 # 
-# Добавить ГПИ:
+# + Добавить ГПИ:
 # 
-# Кнопка паузы
-# Кнопка рестарта
-# Кнопка изменения скорости
+# + Пауза
+# - Рестарт
+# - Изменение скорости
 # Кнопка случайного заполнения поля
 # Таймер
 # Количество поколений (?)
