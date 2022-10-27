@@ -76,7 +76,8 @@ def main():
   running = False
   generations = 0
   start_time = None
-  previous_cells = np.zeros((60, 80))
+  prev_cells = np.zeros((60, 80))
+  preprev_cells = np.zeros((60, 80))
 
 
 
@@ -84,10 +85,9 @@ def main():
   while True:
 
     # Обработка событий нажатия клавиш
-    events = pygame.event.get()
-    for event in events:
+    for event in pygame.event.get():
 
-      # Обработка события выхода
+      # Обработка события закрытия окна программы
       if event.type == pygame.QUIT:
         pygame.quit()
         return
@@ -158,8 +158,9 @@ def main():
     # События симуляции
     if running:
 
-      # Задание массива клеток предыдущего поколения
-      previous_cells = cells
+      # Задание массива клеток предыдущих поколений
+      preprev_cells = prev_cells
+      prev_cells = cells
 
       # Смена поколения клеток
       cells = cells_update(screen, cells, CELL_SIZE, with_progress=True)
@@ -178,15 +179,18 @@ def main():
       if len(np.nonzero(cells)[0]) == 0:
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
+        alive = 0
         time_passed = "%s секунд" % round((time.time() - start_time), 3)
-        msg(f"Симуляция прекращена!\n(все клетки вымерли)\n\nПоколений пройдено: {generations}\nЖивых клеток: 0\nПрошло времени: {time_passed}", "Информация")
+        msg(f"Симуляция прекращена!\n(все клетки вымерли)\n\nПоколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
 
         generations = 0
         start_time = None
         running = not running
 
       # Геймовер (при прекращении появления новых клеток)
-      if np.array_equal(cells, previous_cells):
+      if np.array_equal(cells, prev_cells):
+        cells_update(screen, cells, CELL_SIZE)
+        pygame.display.update()
         alive = len(np.nonzero(cells)[0])
         time_passed = "%s секунд" % round((time.time() - start_time), 3)
         msg(f"Симуляция стабилизировалась!\n(появление новых клеток невозможно)\n\nПоколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
@@ -195,7 +199,17 @@ def main():
         start_time = None
         running = not running
 
-      
+      # Геймовер (при цикличном появлении новых клеток)
+      if np.array_equal(cells, preprev_cells):
+        cells_update(screen, cells, CELL_SIZE)
+        pygame.display.update()
+        alive = len(np.nonzero(cells)[0])
+        time_passed = "%s секунд" % round((time.time() - start_time), 3)
+        msg(f"Симуляция стабилизировалась!\n(появление новых клеток циклично)\n\nПоколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
+
+        generations = 0
+        start_time = None
+        running = not running
 
 
 # Вызов главной функции при запуске программы
@@ -212,4 +226,7 @@ if __name__ == "__main__":
 # - Изменение скорости
 # ? 
 # ? Окна подтверждения при случайной генерации и рестарте
+# - Улучшить окна сообщений
+# - Геймовер при цикличном появлении клеток 
+# - Пофиксить порядок в if running (увеличение поколений должно быть после проверки на геймовер)
 
