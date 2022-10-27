@@ -5,7 +5,7 @@ import time
 from config import *
 from events import *
 
-
+# Изменение состояния клеток в зависимости от их окружения
 def update(screen, cells, size, with_progress=False):
   updated_cells = np.zeros((cells.shape[0], cells.shape[1]))
 
@@ -35,7 +35,7 @@ def update(screen, cells, size, with_progress=False):
 
   return updated_cells
 
-
+# Главная функция программы
 def main():
   pygame.init()
   pygame.display.set_caption('Искусстевнная жизнь')
@@ -52,6 +52,7 @@ def main():
 
   running = False
 
+  # Обработка событий нажатия клавиш и кликов
   while True:
     events = pygame.event.get()
     for event in events:
@@ -88,10 +89,17 @@ def main():
 
     time.sleep(0.001)
 
-
+# Вызов главной функции при запуске программы
 if __name__ == "__main__":
   main()
 
 
 # TODO:
-# Добавить ГПИ
+# 
+# Добавить ГПИ:
+# 
+# Кнопка паузы
+# Кнопка рестарта
+# Кнопка изменения скорости
+# Кнопка случайного заполнения поля
+# 
