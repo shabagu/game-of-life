@@ -48,6 +48,8 @@ def cells_update(screen, cells, size, with_progress=False):
 
 # Главная функция программы
 def main():
+
+  # Инициализирование перед запуском первой симуляции
   pygame.init()
   pygame.display.set_caption('Искусстевнная жизнь')
 
@@ -65,8 +67,10 @@ def main():
   start_time = None
 
 
-  # Обработка событий нажатия клавиш
+  # Основный цикл симуляции
   while True:
+
+    # Обработка событий нажатия клавиш
     events = pygame.event.get()
     for event in events:
 
@@ -82,7 +86,7 @@ def main():
         if event.key == pygame.K_SPACE:
           if start_time == None:
             if len(np.nonzero(cells)[0]) == 0:
-              msg("Для начала симуляции необходимо задать начальные позиции клеток")
+              msg("Для начала симуляции необходимо задать начальные позиции клеток", "Информация")
               break
             else:
               start_time = time.time()
@@ -112,9 +116,12 @@ def main():
 
         # Информация о симуляции
         if event.key == pygame.K_i:
-          alive = len(np.nonzero(cells)[0])
-          time_passed = "%s секунд" % round((time.time() - start_time), 3)
-          msg(f"Поколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
+          if start_time:
+            alive = len(np.nonzero(cells)[0])
+            time_passed = "%s секунд" % round((time.time() - start_time), 3)
+            msg(f"Поколений пройдено: {generations}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
+          else:
+            msg("Симуляция ещё не запущена", "Информаиця")
 
         # Помощь
         if event.key == pygame.K_F1:
@@ -136,18 +143,26 @@ def main():
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
 
-    screen.fill(COLOR_GRID)
+    # Обновление сетки
+    # screen.fill(COLOR_GRID)
 
+    # События симуляции
     if running:
+
+      # Смена поколения клеток
       cells = cells_update(screen, cells, CELL_SIZE, with_progress=True)
       pygame.display.update()
 
+      # Счётчик поколений текущей симуляции
       generations = generations + 1
 
-      time.sleep(0.001)
+      # Задержка
       if SLOW_MODE:
         time.sleep(0.1)
+      else:
+        time.sleep(0.01)
         
+      # Геймовер (при вымирании всех клеток)
       if len(np.nonzero(cells)[0]) == 0:
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
@@ -166,12 +181,11 @@ if __name__ == "__main__":
 
 # TODO:
 # 
-# + Добавить ГПИ:
-# 
 # + Пауза
 # + Рестарт
-# - Изменение скорости
-# +- Таймер (учёт пауз)
 # + Количество поколений
-# 
+# - Учёт пауз в таймере
+# - Изменение скорости
+# ? 
+# ? Окна подтверждения при случайной генерации и рестарте
 
