@@ -5,7 +5,7 @@ import time
 from config import *
 
 # Функция вызова сообщения
-def msg(text, title=""):
+def msg(text="test", title=""):
   pyautogui.alert(text, title)
 
 
@@ -70,12 +70,19 @@ def main():
   pygame.display.flip()
   pygame.display.update()
 
+  # Переменные процесса симуляции
   running = False
   slow_mode = False
+
+  # Переменные для сбора статистики
   generation = 0
   start_time = None
   prev_cells = np.zeros((60, 80))
   preprev_cells = np.zeros((60, 80))
+  cells_added = 0
+  cells_deleted = 0
+  cells_randomly_generated = 0
+  cells_after_last_simulation = 0
 
 
 
@@ -118,6 +125,7 @@ def main():
         # Генерация случайных клеток
         if event.key == pygame.K_g:
           cells = np.random.randint(0, 2, (60, 80))
+          cells_randomly_generated = len(np.nonzero(cells)[0])
           generation = 0
           start_time = time.time()
           cells_update(screen, cells, CELL_SIZE)
@@ -129,13 +137,17 @@ def main():
         if event.key == pygame.K_i:
           if start_time:
             alive = len(np.nonzero(cells)[0])
+            if not running:
+              condition = "[Симуляция приостановлена]"
+            else:
+              condition = "[Смуляция активна]"
             if start_time != None and generation != 1:
               time_passed = "%s секунд" % round((time.time() - start_time), 3)
             else:
               time_passed = "0 секунд"
-            msg(f"Поколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
+            msg(f"{condition}\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}\n\nКлеток добавлено: {cells_added}\nКлеток удалено: {cells_deleted}\nКлеток сгенерировано случайно: {cells_randomly_generated}\nКлеток оставшихся после предыдущей симуляции: {cells_after_last_simulation}","Информация")
           else:
-            msg("Симуляция ещё не запущена", "Информаиця")
+            msg("[Симуляция ещё не начата]", "Информаиця")
 
         # Включение/выключение замедленного режима
         if event.key == pygame.K_s:
@@ -143,14 +155,16 @@ def main():
 
         # Помощь
         if event.key == pygame.K_F1:
-          msg("Управление\n\nSPACE - пауза\nЛКМ - выставление клетки (во время паузы)\nR - перезапуск\nG - случайная генерация клеток\nI - просмотреть информацию о текущей симуляции\nS - включение/выключение замедленного режима", "Помощь")
+          msg("Управление\n\nSPACE - пауза\nЛКМ - выставление клетки (во время паузы)\nR - перезапуск симуляции\nG - случайная генерация клеток\nI - просмотреть информацию о текущей симуляции\nS - включение/выключение замедленного режима", "Помощь")
 
       # Обработка события нажатия ЛКМ (расстановка клеток)
       if pygame.mouse.get_pressed()[0]:
         pos = pygame.mouse.get_pos()
         if not running:
           try:
-            cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 1
+            if cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] != 1:
+              cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 1
+              cells_added += 1
           except IndexError: pass
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
@@ -160,7 +174,9 @@ def main():
         pos = pygame.mouse.get_pos()
         if not running:
           try:
-            cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 0
+            if cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] != 0:
+              cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 0
+              cells_deleted += 1
           except IndexError: pass
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
@@ -177,7 +193,7 @@ def main():
       pygame.display.update()
 
       # Счётчик поколений текущей симуляции
-      generation = generation + 1
+      generation += 1
 
       # Задержка
       if slow_mode:
@@ -186,7 +202,7 @@ def main():
         time.sleep(0.01)
         
       # Геймовер (при вымирании всех клеток)
-      if len(np.nonzero(cells)[0]) == 0:
+      if len(np.nonzero(cells)[0]) == 0 and running:
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
         alive = 0
@@ -194,14 +210,18 @@ def main():
           time_passed = "%s секунд" % round((time.time() - start_time), 3)
         else:
           time_passed = "0 секунд"
-        msg(f"Симуляция стабилизировалась!\n(все клетки вымерли)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
-
+        msg(f"[Симуляция стабилизировалась]\n(все клетки вымерли)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}\n\nКлеток добавлено: {cells_added}\nКлеток удалено: {cells_deleted}\nКлеток сгенерировано случайно: {cells_randomly_generated}\nКлеток оставшихся после предыдущей симуляции: {cells_after_last_simulation}", "Информация")
         generation = 0
         start_time = None
-        running = not running
+        prev_cells = np.zeros((60, 80))
+        preprev_cells = np.zeros((60, 80))
+        cells_added = 0
+        cells_deleted = 0
+        running = False
+        cells_after_last_simulation = alive
 
       # Геймовер (при прекращении появления новых клеток)
-      if np.array_equal(cells, prev_cells):
+      if np.array_equal(cells, prev_cells) and running:
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
         alive = len(np.nonzero(cells)[0])
@@ -209,14 +229,18 @@ def main():
           time_passed = "%s секунд" % round((time.time() - start_time), 3)
         else:
           time_passed = "0 секунд"
-        msg(f"Симуляция стабилизировалась!\n(появление новых клеток невозможно)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
-
+        msg(f"[Симуляция стабилизировалась]\n(появление новых клеток невозможно)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}\n\nКлеток добавлено: {cells_added}\nКлеток удалено: {cells_deleted}\nКлеток сгенерировано случайно: {cells_randomly_generated}\nКлеток оставшихся после предыдущей симуляции: {cells_after_last_simulation}", "Информация")
         generation = 0
         start_time = None
-        running = not running
+        prev_cells = np.zeros((60, 80))
+        preprev_cells = np.zeros((60, 80))
+        cells_added = 0
+        cells_deleted = 0
+        running = False
+        cells_after_last_simulation = alive
 
       # Геймовер (при цикличном появлении новых клеток)
-      if np.array_equal(cells, preprev_cells):
+      if np.array_equal(cells, preprev_cells) and running:
         cells_update(screen, cells, CELL_SIZE)
         pygame.display.update()
         alive = len(np.nonzero(cells)[0])
@@ -224,16 +248,22 @@ def main():
           time_passed = "%s секунд" % round((time.time() - start_time), 3)
         else:
           time_passed = "0 секунд"
-        msg(f"Симуляция стабилизировалась!\n(появление новых клеток циклично)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}", "Информация")
-
+        msg(f"[Симуляция стабилизировалась]\n(появление новых клеток циклично)\n\nПоколение: {generation}\nЖивых клеток: {alive}\nПрошло времени: {time_passed}\n\nКлеток добавлено: {cells_added}\nКлеток удалено: {cells_deleted}\nКлеток сгенерировано случайно: {cells_randomly_generated}\nКлеток оставшихся после предыдущей симуляции: {cells_after_last_simulation}", "Информация")
         generation = 0
         start_time = None
-        running = not running
+        prev_cells = np.zeros((60, 80))
+        preprev_cells = np.zeros((60, 80))
+        cells_added = 0
+        cells_deleted = 0
+        running = False
+        cells_after_last_simulation = alive
 
 
 # Вызов главной функции при запуске программы
 if __name__ == "__main__":
   main()
+
+
 
 
 # TODO:
@@ -244,10 +274,16 @@ if __name__ == "__main__":
 # +++ Геймовер при цикличном появлении клеток 
 # +++ Изменение скорости
 # +++ Стирание клеток в паузе
-# *** Учёт пауз в таймере
-# *** Пофиксить порядок в if running (увеличение поколений должно быть после проверки на геймовер)
-# ??? Окна подтверждения при случайной генерации и рестарте
-# --- Улучшить окна сообщений
-# --- Счётчик добавленных вручную клеток (и счётчик удалённых)
+# 
+# +++ Счётчик добавленных вручную клеток (и счётчик удалённых)
+# +++ Клеток случайно сгенерированно + от прошлой симуляции
+# +++ Вывод состояния симуляции (running not running) в инфо
+# +++ Вывод в инфо кликов
+# 
+# --- Подсказки при отсутствии клеток и попытке начать симуляцию
 # --- Подсказки при геймовере
+# --- Улучшить окна сообщений (https://stackoverflow.com/questions/31815007/change-icon-for-tkinter-messagebox)
 # --- Цветовая палитра (белый/расный)
+# 
+# ??? Окна подтверждения при случайной генерации и рестарте
+# 
