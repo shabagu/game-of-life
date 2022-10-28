@@ -8,9 +8,39 @@ from config import *
 def msg(text="test", title=""):
   pyautogui.alert(text, title)
 
+# bg -> dead
+# grid -> bg
+# dying_cell -> dying
+# alive_cell -> alive
+COLORS = dict(
+  BLACK_WHITE = dict(
+    BG = (40, 40, 40),
+    DEAD = (10, 10, 10),
+    DYING = (170, 170, 170),
+    ALIVE = (255, 255, 255),
+  ),
+  BLACK_RED = dict(
+    BG = (40, 40, 40),
+    DEAD = (10, 10, 10),
+    DYING = (170, 170, 170),
+    ALIVE = (255, 255, 255),
+  ),
+  BLACK_GREEN = dict(
+    BG = (40, 40, 40),
+    DEAD = (10, 10, 10),
+    DYING = (170, 170, 170),
+    ALIVE = (255, 255, 255),
+  ),
+  BLACK_BLUE = dict(
+    BG = (40, 40, 40),
+    DEAD = (10, 10, 10),
+    DYING = (170, 170, 170),
+    ALIVE = (255, 255, 255),
+  ),
+)
 
 # Изменение состояния клеток на поле
-def cells_update(screen, cells, size, with_progress=False):
+def cells_update(screen, cells, size, with_progress=False, color_set="BLACK_WHITE"):
 
   # Инициализация массива клеток поля
   updated_cells = np.zeros((cells.shape[0], cells.shape[1]))
@@ -25,10 +55,10 @@ def cells_update(screen, cells, size, with_progress=False):
     if cells[row, col] == 0:
       # Инициализация пустых клеток
       # (на этом этапе происходит вымирание клетки от одиночества)
-      color = COLOR_BG
+      color = COLORS[color_set]["DEAD"]
     else:
       # Инициализация не пустых клеток
-      color =  COLOR_ALIVE_CELL
+      color =  COLORS[color_set]["ALIVE"]
 
     # Обработка заполненных клеток поля
     if cells[row, col] == 1:
@@ -36,20 +66,20 @@ def cells_update(screen, cells, size, with_progress=False):
       # Вымирание клетки от перенаселения
       if alive < 2 or alive > 3:
         if with_progress:
-          color = COLOR_DYING_CELL
+          color = COLORS[color_set]["DYING"]
 
       # Клетка выживает
       elif 2 <= alive <= 3:
         updated_cells[row, col] = 1
         if with_progress:
-          color = COLOR_ALIVE_CELL
+          color = COLORS[color_set]["ALIVE"]
 
     # Зарождение жизни (при наличии трёх соседей)
     else:
       if alive == 3:
         updated_cells[row, col] = 1
         if with_progress:
-          color = COLOR_ALIVE_CELL
+          color = COLORS[color_set]["ALIVE"]
 
     # Отрисовка клеток на экране pygame
     pygame.draw.rect(screen, color, (col * size, row * size, size - 1, size - 1))
@@ -59,12 +89,12 @@ def cells_update(screen, cells, size, with_progress=False):
 
 # Главная функция программы
 def main():
-
   # Инициализирование перед запуском первой симуляции
   pygame.init()
   pygame.display.set_caption('Искусстевнная жизнь')
+  color_set = "BLACK_WHITE"
   screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-  screen.fill(COLOR_GRID)
+  msg(COLORS[color_set]["BG"])
   cells = np.zeros((60, 80))
   cells_update(screen, cells, CELL_SIZE)
   pygame.display.flip()
@@ -126,6 +156,7 @@ def main():
         if event.key == pygame.K_g:
           cells = np.random.randint(0, 2, (60, 80))
           cells_randomly_generated = len(np.nonzero(cells)[0])
+          cells_after_last_simulation = 0
           generation = 0
           start_time = time.time()
           cells_update(screen, cells, CELL_SIZE)
@@ -284,6 +315,7 @@ if __name__ == "__main__":
 # --- Подсказки при геймовере
 # --- Улучшить окна сообщений (https://stackoverflow.com/questions/31815007/change-icon-for-tkinter-messagebox)
 # --- Цветовая палитра (белый/расный)
+# --- Изменение цвета пока игра запущена
 # 
 # ??? Окна подтверждения при случайной генерации и рестарте
 # 
