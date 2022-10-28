@@ -8,37 +8,6 @@ from config import *
 def msg(text="test", title=""):
   pyautogui.alert(text, title)
 
-# bg -> dead
-# grid -> bg
-# dying_cell -> dying
-# alive_cell -> alive
-COLORS = dict(
-  BLACK_WHITE = dict(
-    BG = (40, 40, 40),
-    DEAD = (10, 10, 10),
-    DYING = (170, 170, 170),
-    ALIVE = (255, 255, 255),
-  ),
-  BLACK_RED = dict(
-    BG = (40, 40, 40),
-    DEAD = (10, 10, 10),
-    DYING = (170, 170, 170),
-    ALIVE = (255, 255, 255),
-  ),
-  BLACK_GREEN = dict(
-    BG = (40, 40, 40),
-    DEAD = (10, 10, 10),
-    DYING = (170, 170, 170),
-    ALIVE = (255, 255, 255),
-  ),
-  BLACK_BLUE = dict(
-    BG = (40, 40, 40),
-    DEAD = (10, 10, 10),
-    DYING = (170, 170, 170),
-    ALIVE = (255, 255, 255),
-  ),
-)
-
 # Изменение состояния клеток на поле
 def cells_update(screen, cells, size, with_progress=False, color_set="BLACK_WHITE"):
 
@@ -89,14 +58,15 @@ def cells_update(screen, cells, size, with_progress=False, color_set="BLACK_WHIT
 
 # Главная функция программы
 def main():
+
   # Инициализирование перед запуском первой симуляции
   pygame.init()
   pygame.display.set_caption('Искусстевнная жизнь')
   color_set = "BLACK_WHITE"
   screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-  msg(COLORS[color_set]["BG"])
+  screen.fill(COLORS[color_set]["GRID"])
   cells = np.zeros((60, 80))
-  cells_update(screen, cells, CELL_SIZE)
+  cells_update(screen, cells, CELL_SIZE, color_set=color_set)
   pygame.display.flip()
   pygame.display.update()
 
@@ -113,7 +83,6 @@ def main():
   cells_deleted = 0
   cells_randomly_generated = 0
   cells_after_last_simulation = 0
-
 
 
   # Основный цикл симуляции
@@ -138,16 +107,19 @@ def main():
               break
             else:
               start_time = time.time()
+              cells_randomly_generated = 0
           running = not running
-          cells_update(screen, cells, CELL_SIZE)
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
           pygame.display.update()
 
         # Рестарт
         if event.key == pygame.K_r:
           cells = np.zeros((60, 80))
+          cells_randomly_generated = 0
+          cells_after_last_simulation = 0
           generation = 0
           start_time = None
-          cells_update(screen, cells, CELL_SIZE)
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
           pygame.display.update()
           if running:
             running = not running
@@ -159,7 +131,7 @@ def main():
           cells_after_last_simulation = 0
           generation = 0
           start_time = time.time()
-          cells_update(screen, cells, CELL_SIZE)
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
           pygame.display.update()
           if not running:
             running = not running
@@ -184,6 +156,48 @@ def main():
         if event.key == pygame.K_s:
           slow_mode = not slow_mode
 
+        # Изменение цвета клеток
+        if event.key == pygame.K_1:
+          color_set = "BLACK_WHITE"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_2:
+          color_set = "BLACK_RED"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_3:
+          color_set = "BLACK_GREEN"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_4:
+          color_set = "BLACK_BLUE"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_5:
+          color_set = "WHITE_BLACK"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_6:
+          color_set = "WHITE_RED"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_7:
+          color_set = "WHITE_GREEN"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+        if event.key == pygame.K_8:
+          color_set = "WHITE_BLUE"
+          screen.fill(COLORS[color_set]["GRID"])
+          cells_update(screen, cells, CELL_SIZE, color_set=color_set)
+          pygame.display.update()
+
         # Помощь
         if event.key == pygame.K_F1:
           msg("Управление\n\nSPACE - пауза\nЛКМ - выставление клетки (во время паузы)\nR - перезапуск симуляции\nG - случайная генерация клеток\nI - просмотреть информацию о текущей симуляции\nS - включение/выключение замедленного режима", "Помощь")
@@ -197,7 +211,7 @@ def main():
               cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 1
               cells_added += 1
           except IndexError: pass
-        cells_update(screen, cells, CELL_SIZE)
+        cells_update(screen, cells, CELL_SIZE, color_set=color_set)
         pygame.display.update()
         
       # Обработка события нажатия ПКМ (удаление клеток)
@@ -209,7 +223,7 @@ def main():
               cells[pos[1] // CELL_SIZE, pos[0] // CELL_SIZE] = 0
               cells_deleted += 1
           except IndexError: pass
-        cells_update(screen, cells, CELL_SIZE)
+        cells_update(screen, cells, CELL_SIZE, color_set=color_set)
         pygame.display.update()
 
     # События симуляции
@@ -220,7 +234,7 @@ def main():
       prev_cells = cells
 
       # Смена поколения клеток
-      cells = cells_update(screen, cells, CELL_SIZE, with_progress=True)
+      cells = cells_update(screen, cells, CELL_SIZE, with_progress=True, color_set=color_set)
       pygame.display.update()
 
       # Счётчик поколений текущей симуляции
@@ -234,7 +248,7 @@ def main():
         
       # Геймовер (при вымирании всех клеток)
       if len(np.nonzero(cells)[0]) == 0 and running:
-        cells_update(screen, cells, CELL_SIZE)
+        cells_update(screen, cells, CELL_SIZE, color_set=color_set)
         pygame.display.update()
         alive = 0
         if start_time != None and generation != 1:
@@ -253,7 +267,7 @@ def main():
 
       # Геймовер (при прекращении появления новых клеток)
       if np.array_equal(cells, prev_cells) and running:
-        cells_update(screen, cells, CELL_SIZE)
+        cells_update(screen, cells, CELL_SIZE, color_set=color_set)
         pygame.display.update()
         alive = len(np.nonzero(cells)[0])
         if start_time != None and generation != 1:
@@ -272,7 +286,7 @@ def main():
 
       # Геймовер (при цикличном появлении новых клеток)
       if np.array_equal(cells, preprev_cells) and running:
-        cells_update(screen, cells, CELL_SIZE)
+        cells_update(screen, cells, CELL_SIZE, color_set=color_set)
         pygame.display.update()
         alive = len(np.nonzero(cells)[0])
         if start_time != None and generation != 1:
@@ -315,7 +329,7 @@ if __name__ == "__main__":
 # --- Подсказки при геймовере
 # --- Улучшить окна сообщений (https://stackoverflow.com/questions/31815007/change-icon-for-tkinter-messagebox)
 # --- Цветовая палитра (белый/расный)
-# --- Изменение цвета пока игра запущена
+# --- Системы изменения цветов
 # 
 # ??? Окна подтверждения при случайной генерации и рестарте
 # 
